@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Date>2016-07-20T02:38:14.5926109</Date>
+    <Author>PW-OPS-AD\jgentile</Author>
+    <Description>Tool to fix Naviance submitted Rec Forms attached to a deleted Invitation by reassigning the RecForm to a current Invitation. Call this stored proc - FixNavianceDeletedInvitationsWithSubmittedRecForms and then copies files in S3 from from deleted InvitationId to current Invitation Id.</Description>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>2016-07-20T07:00:00</StartBoundary>
+      <ExecutionTimeLimit>P1D</ExecutionTimeLimit>
+      <Enabled>false</Enabled>
+      <ScheduleByDay>
+        <DaysInterval>1</DaysInterval>
+      </ScheduleByDay>
+    </CalendarTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>C-UTIL\DevOpsAdmin</UserId>
+      <LogonType>Password</LogonType>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>true</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>false</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>true</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>false</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
+    <UseUnifiedSchedulingEngine>false</UseUnifiedSchedulingEngine>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>P1D</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>C:\CACloud\NavianceDeletedInvFixer\NavianceDeletedInvFixer.exe</Command>
+    </Exec>
+  </Actions>
+</Task>

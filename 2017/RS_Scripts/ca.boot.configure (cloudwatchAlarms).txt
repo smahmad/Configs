@@ -1,0 +1,96 @@
+# Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+#$errorActionPreference = "Stop"
+ 
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+# Add $env: to force execute input if this code is ever uncommented
+if ([System.Convert]::ToBoolean($CA_REBOOT) -and !([System.Convert]::ToBoolean($env:CA_GLB_FORCE_EXECUTE))){
+          
+  write-host "Skipping after reboot."
+  exit 0
+}
+
+#Load up a few variables from inputs, and the environment
+$region = $env:CA_DPL_REGION
+$tierName = $env:CA_SA_TIER_NAME
+$RightScaleServerName = $env:CA_GBL_INSTANCE_NAME
+$instanceID = $env:CA_GBL_INSTANCE_ID
+$RSDeploymentName = $env:CA_DPL_DEPLOYMENT_NAME
+
+$percent = [int]$env:CA_SA_RAM_USAGE_THRESHOLD_PERCENTAGE 
+
+$diskThreshold = [int]$env:CA_SA_DISK_USAGE_THRESHOLD_PERCENTAGE
+
+$Topic =$env:CA_SA_ALARM_TOPIC
+
+#Set the Channel name 
+if($RSDeploymentName.Contains("Elephant"))
+{
+    $DeployComponent = "Elephant"
+}
+Elseif($RSDeploymentName.Contains("Donkey"))
+{
+    $DeployComponent = "Donkey"
+}
+Elseif($RSDeploymentName.Contains("Senate"))
+{
+    $DeployComponent = "Senate"
+}
+Elseif($RSDeploymentName.Contains("House"))
+{
+    $DeployComponent = "House"
+}
+Else
+{
+    $DeployComponent ="Common"
+}
+
+#Get server number for last part of server name and then build out the full new name
+#Stand alone servers will not have a number hence the first test
+$ServerNumberArray = $RightScaleServerName -split("#")
+if ($ServerNumberArray.Count -lt 2)
+{
+    $NewServerName = $DeployComponent + "-" + $tierName 
+}
+else
+{
+  $ServerNumber = [string]$ServerNumberArray[1]
+  $NewServerName = $DeployComponent + "-" + $tierName +"-" + $ServerNumber
+ }
+$NewServerName = $NewServerName -replace '\s',''
+
+
+
+
+
+#Load in the Cloudwatch assembly and Create CloudWatch Alarms
+
+Add-Type -Path "C:\Program Files (x86)\AWS Tools\PowerShell\AWSPowerShell\AWSSDK.CloudWatch.dll"
+
+$AwsMemoryJsonFile = Get-Content "$env:RS_ATTACH_DIR\instance_memory_info.json"
+                                                  
+$AwsMemoryJsonObj = ConvertFrom-json -InputObject $AwsMemoryJsonFile
+
+
+$instanceType = Invoke-RestMethod -uri http://169.254.169.254/latest/meta-data/instance-type
+
+
+$ram = $AwsMemoryJsonObj.$instanceType
+
+$ramThreshold = (($percent/100) * $ram * 1024) #must convert to Megabytes
+
+
+$dimension = New-Object Amazon.CloudWatch.Model.Dimension
+$dimension.set_Name("InstanceId")
+$dimension.set_Value($instanceID)
+
+Write-CWMetricAlarm -AlarmName  ("{0}% of RAM Remaining - $NewServerName Prod17 EC2" -f ($percent)) -ActionsEnabled $False -AlarmAction @($Topic) -ComparisonOperator 'LessThanOrEqualToThreshold' -Dimension @($dimension) -EvaluationPeriod 1 -MetricName  "Memory" -Namespace  'AWS/EC2' -Period 60 -Statistic "Average" -Threshold  $ramThreshold -Unit 'Megabytes'
+
+
+
+Write-CWMetricAlarm -AlarmName  ("{0}% Disk Space Used - $NewServerName Prod17 EC2" -f $diskThreshold) -ActionsEnabled $False -AlarmAction @($Topic) -ComparisonOperator 'GreaterThanOrEqualToThreshold' -Dimension  @($dimension) -EvaluationPeriod 1 -MetricName "FreeDiskPercentage" -Namespace  'AWS/EC2' -Period 60 -Statistic "Average" -Threshold $diskThreshold -Unit 'Percent'
+
+
+

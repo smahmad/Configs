@@ -1,0 +1,94 @@
+# Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+$errorActionPreference = "Stop"
+ 
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+# Add $env: to force execute input if this code is ever uncommented
+if ([System.Convert]::ToBoolean($CA_REBOOT) -and !([System.Convert]::ToBoolean($env:CA_GLB_FORCE_EXECUTE))){
+          
+  write-host "Skipping after reboot."
+  exit 0
+}
+
+#Load up a few variables from inputs, and the environment
+$region = $env:CA_DPL_REGION
+$tierName = $env:CA_SA_TIER_NAME
+$RightScaleServerName = $env:CA_GBL_INSTANCE_NAME
+$instanceID = $env:CA_GBL_INSTANCE_ID
+$RSDeploymentName = $env:CA_DPL_DEPLOYMENT_NAME
+$bucketName = $env:CA_GBL_OPS_BUCKET_NAME
+$configKey = $env:CA_DPL_EC2CONFIG_PATH
+$winLogGroupName = $env:CA_DPL_WIN_LOG_GROUP_NAME
+$iisLogGroupName = $env:CA_DPL_IIS_LOG_GROUP_NAME
+$caoLogGroupName = $env:CA_DPL_CAO_LOG_GROUP_NAME
+
+
+#Set the Channel name 
+if($RSDeploymentName.Contains("Elephant"))
+{
+    $DeployComponent = "Elephant"
+}
+Elseif($RSDeploymentName.Contains("Donkey"))
+{
+    $DeployComponent = "Donkey"
+}
+Elseif($RSDeploymentName.Contains("Senate"))
+{
+    $DeployComponent = "Senate"
+}
+Elseif($RSDeploymentName.Contains("House"))
+{
+    $DeployComponent = "House"
+}
+Else
+{
+    $DeployComponent ="Common"
+}
+
+#Get server number for last part of server name and then build out the full new name
+#Stand alone servers will not have a number hence the first test
+$ServerNumberArray = $RightScaleServerName -split("#")
+if ($ServerNumberArray.Count -lt 2)
+{
+    $NewServerName = $DeployComponent + "-" + $tierName 
+}
+else
+{
+  $ServerNumber = [string]$ServerNumberArray[1]
+  $NewServerName = $DeployComponent + "-" + $tierName +"-" + $ServerNumber
+ }
+$NewServerName = $NewServerName -replace '\s',''
+
+$EC2SettingsFile="C:\Program Files\Amazon\Ec2ConfigService\Settings\Config.xml"
+$xml = [xml](get-content $EC2SettingsFile)
+$xmlElement = $xml.get_DocumentElement()
+$xmlElementToModify = $xmlElement.Plugins
+
+foreach ($element in $xmlElementToModify.Plugin)
+{
+    if ($element.name -eq "AWS.EC2.Windows.CloudWatch.PlugIn")
+    {
+        $element.State="Enabled"
+    }
+}
+$xml.Save($EC2SettingsFile)
+Write-Output $bucketName
+Write-Output $configkey
+Read-S3Object -Region $region -BucketName $bucketName -Key $configKey -File temp.txt
+
+$tmp = Get-Content temp.txt
+Write-Output $tmp
+Get-Content temp.txt | %{$_ -replace '#WinLogGroupName#', $winLogGroupName } |
+                       %{$_ -replace '#IISLogGroupName#', $iisLogGroupName } |
+                       %{$_ -replace '#CustomLogGroupName#', $caoLogGroupName } |
+                       %{$_ -replace '#LogStreamName#', $NewServerName } |
+                       %{$_ -replace '#InstanceId#', $instanceID } |
+                       %{$_ -replace '#Region#', $region} |Set-Content 'C:\Program Files\Amazon\Ec2ConfigService\Settings\AWS.EC2.Windows.CloudWatch.json'
+
+
+Remove-Item temp.txt
+
+Restart-Service "Amazon SSM Agent"
+

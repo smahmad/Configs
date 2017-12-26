@@ -1,0 +1,24 @@
+# Powershell 2.0
+
+# Stop and fail script when a command fails.
+$errorActionPreference = "Stop"
+
+$caRSLibPath = $env:CA_GBL_RS_LIB_FILE_PATH
+$blnClassicELB = $env:CA_SA_BOOL_CLASSIC_ELB
+$connDrainTime = $env:CA_GBL_ELB_CONN_DRAIN_TIMEOUT
+$region = $env:CA_DPL_REGION
+$instanceID = $env:CA_GBL_INSTANCE_ID
+
+# Convert comma seperated strings to array
+$arrElbOrTargetGroup = $env:CA_SA_ELB_OR_TARGET_GROUP_NAME.split(",")
+
+#include the CA powershell library
+. $caRSLibPath
+
+try{
+  # De-rgeister instance from all ELBs
+  DeRegisterFromELB $region $blnClassicELB $arrElbOrTargetGroup $instanceID $connDrainTime
+}catch{
+  "An error occured: $_"
+  exit 1
+}

@@ -1,0 +1,116 @@
+# Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+$errorActionPreference = "Stop"
+ 
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+# Add $env: to force execute input if this code is ever uncommented
+if ([System.Convert]::ToBoolean($CA_REBOOT) -and !([System.Convert]::ToBoolean($env:CA_GLB_FORCE_EXECUTE))){
+          
+  write-host "Skipping after reboot."
+  exit 0
+}
+
+$caRSLibPath = $env:CA_GBL_RS_LIB_FILE_PATH
+$installFolderPath = $env:CA_SA_INSTALL_FOLDER_PATH
+$downloadPath = $env:CA_GBL_DOWNLOAD_FOLDER_PATH
+$releaseFileS3Key = $env:CA_SA_RELEASE_FILE_S3_KEY
+$bucketName = $env:CA_GBL_OPS_BUCKET_NAME
+$region = $env:CA_DPL_REGION
+$logLevel = $env:CA_GBL_LOGGING_LEVEL
+$xmlKeys = $env:CA_DPL_CONFIG_ENCRYPTION_KEY
+$blnEncryptConfig = $env:CA_SA_BOOL_ENCRYPT_CONFIG
+$buildSrcFolderPath = $env:CA_SA_BUILD_SRC_FOLDER_PATH
+$tierName = $env:CA_SA_TIER_NAME
+
+#Following variables can contain one more values separated by coma
+$arrConfigFileS3Key = $env:CA_SA_ARR_CONFIG_FILE_S3_KEY.split(",")
+
+#Initialize the variables with the credentials which contains the data for external config files and the corresponding external config file names
+$iisAppSettingsXML = $env:CA_SA_CRED_CONFIG_APPSETTINGS
+$iisAppSettingsFileName = "ca-appsettings.config"
+
+$iisWebMachinekeyXML = $env:CA_DPL_CRED_CONFIG_IIS_WEB_MACHINEKEY
+$iisWebMachinekeyFileName = "machinekey.config"
+
+$connStringsXML = $env:CA_SA_CRED_CONFIG_CONNSTRINGS
+$connStringsFileName = "connstrings.config"
+
+#Create a hashtable using the external config file name as the key and file contents coming from credentials as the value
+$tblExternalConfig = @{"app"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML};
+                       "rec"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML};
+                       "member"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML};
+                       "tcc"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "logic"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "pdf"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "partner"=@{$iisAppSettingsFileName=$iisAppSettingsXML};
+                       "mobile-auth"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "mobile-data"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "cashnet-1"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML};
+                       "cashnet-2"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML}
+                       }
+
+$unzipSrcPath = Join-Path (Join-Path $downloadPath $buildSrcFolderPath) "*"
+
+
+#include the CA powershell library
+. $caRSLibPath
+
+
+try{
+
+  "Stopping IIS..."
+  Start-Process "iisreset" -ArgumentList "/stop" -Wait 
+
+  #Create an installation folder if it doesn't already exists
+  if ( -not (Test-Path $installFolderPath)) {
+    mkdir $installFolderPath
+  }
+
+  #clean up existing contents of the installation folder
+  Remove-Item (Join-Path $installFolderPath "*") -recurse -force
+
+  # Create download folder if it doesn't exist
+  if ( -not (Test-Path $downloadPath)) {
+    mkdir $downloadPath
+  }
+
+  #Remove any previously downloaded build packages
+  Remove-Item (Join-Path $downloadPath "*") -recurse -force
+
+  #Download the release package from S3
+  $releaseFileName = GetS3File $region $bucketName $releaseFileS3Key $downloadPath
+  
+  "Downloaded release file $releaseFileName successfully."
+
+  #Unzip the file in the downloaded folder
+  UnzipFile $downloadPath $releaseFileName
+
+  #Copy the code from the build package to the installation folder
+  Copy-Item $unzipSrcPath -Destination $installFolderPath -recurse
+
+  #Deploy the config file
+  DeployConfigFile $region $bucketName $arrConfigFileS3Key $installFolderPath $tierName $tblExternalConfig
+    
+  
+  #Encrypt the config file if flag is set
+  if ($blnEncryptConfig.ToLower() -eq "true"){
+    EncryptTierConfigFiles $installFolderPath $tierName $tblExternalConfig
+  }
+
+  #Set the log4Net logging level
+  $logFilePath = Join-Path $installFolderPath "logging.config"
+
+  SetLoggingLevel $logFilePath $logLevel
+  
+  "Starting IIS..."
+  Start-Process "iisreset" -ArgumentList "/start" -Wait 
+
+  Write-Host "Code deployment completed."
+
+}
+catch{
+    "An error occured: $_"
+    exit 1
+}

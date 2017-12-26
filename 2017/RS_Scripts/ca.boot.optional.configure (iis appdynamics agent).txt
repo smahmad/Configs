@@ -1,0 +1,52 @@
+## Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+$errorActionPreference = "Stop"
+ 
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+# Add $env: to force execute input if this code is ever uncommented
+if ([System.Convert]::ToBoolean($CA_REBOOT) -and !([System.Convert]::ToBoolean($env:CA_GLB_FORCE_EXECUTE))){
+          
+  write-host "Skipping after reboot."
+  exit 0
+}
+
+$blnInstallAppDyn = $env:CA_SA_BOOL_APPDYNAMICS_INSTALL
+$tierName = $env:CA_SA_TIER_NAME
+
+If ($blnInstallAppDyn.ToLower() -ne "true"){
+  write-host "Skipping the APM install on the test instance"
+  exit 0
+}
+
+#Stop-Service AppDynamics.Agent.Coordinator_service
+
+#Stop IIS
+Start-Process "iisreset" -ArgumentList "/stop" -Wait
+
+#replace values in the config file
+Get-Content $env:RS_ATTACH_DIR\iis-config.xml | 
+  %{$_ -replace '#AppDynamicsNodeName#', "$env:CA_GBL_INSTANCE_NAME" } |
+  %{$_ -replace '#WebSiteName#', "$env:CA_SA_WEB_SITE_NAME" } |
+  %{$_ -replace '#AppDynamicsSysName#', "$env:CA_DPL_APPDYNAMICS_SYSTEM_NAME" } |
+  %{$_ -replace '#AppDynamicsTierName#', "$env:CA_SA_TIER_NAME" } | Out-File -Encoding UTF8 $env:RS_ATTACH_DIR\iis-config-out.xml
+
+#Copy the config file to the AppDynamics installation folder
+Copy-Item $env:RS_ATTACH_DIR\iis-config-out.xml C:\ProgramData\AppDynamics\DotNetAgent\Config\config.xml -force
+
+# Restart-Service AppDynamics.Agent.Coordinator
+Start-Service AppDynamics.Agent.Coordinator_service
+
+$service = Get-Service AppDynamics.Agent.Coordinator_service
+$service.WaitForStatus("Running", '00:02:00')
+
+# Restart-Service AppDynamics.Agent.Coordinator
+Restart-Service AppDynamics.Agent.Coordinator_service
+
+$service = Get-Service AppDynamics.Agent.Coordinator_service
+$service.WaitForStatus("Running", '00:02:00')
+
+#restart service to be monitored
+Write-Host "Starting IIS"
+Start-Process "iisreset" -ArgumentList "/start" -Wait

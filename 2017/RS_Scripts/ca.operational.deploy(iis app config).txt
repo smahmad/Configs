@@ -1,0 +1,91 @@
+# Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+$errorActionPreference = "Stop"
+
+
+$caRSLibPath = $env:CA_GBL_RS_LIB_FILE_PATH
+$blnClassicELB = $env:CA_SA_BOOL_CLASSIC_ELB
+$connDrainTime = $env:CA_GBL_ELB_CONN_DRAIN_TIMEOUT
+$instanceID = $env:CA_GBL_INSTANCE_ID
+$bucketName = $env:CA_GBL_OPS_BUCKET_NAME
+$region = $env:CA_DPL_REGION
+$blnEncryptConfig = $env:CA_SA_BOOL_ENCRYPT_CONFIG
+$xmlKeys = $env:CA_DPL_CONFIG_ENCRYPTION_KEY
+$tierName = $env:CA_SA_TIER_NAME
+$installFolderPath = $env:CA_SA_INSTALL_FOLDER_PATH
+$installSSL = $env:CA_SA_BOOL_INSTALL_SSL
+
+#Following variables can contain one more values separated by coma
+$arrConfigFileS3Key = $env:CA_SA_ARR_CONFIG_FILE_S3_KEY.split(",")
+
+#Initialize the variables with the credentials which contains the data for external config files and the corresponding external config file names
+$iisAppSettingsXML = $env:CA_SA_CRED_CONFIG_APPSETTINGS
+$iisAppSettingsFileName = "ca-appsettings.config"
+
+$iisWebMachinekeyXML = $env:CA_DPL_CRED_CONFIG_IIS_WEB_MACHINEKEY
+$iisWebMachinekeyFileName = "machinekey.config"
+
+$connStringsXML = $env:CA_SA_CRED_CONFIG_CONNSTRINGS
+$connStringsFileName = "connstrings.config"
+
+#Create a hashtable using the external config file name as the key and file contents coming from credentials as the value
+$tblExternalConfig = @{"app"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML};
+                       "rec"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML};
+                       "member"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML};
+                       "tcc"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "logic"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "pdf"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "partner"=@{$iisAppSettingsFileName=$iisAppSettingsXML};
+                       "mobile-auth"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "mobile-data"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$connStringsFileName=$connStringsXML};
+                       "cashnet-1"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML};
+                       "cashnet-2"=@{$iisAppSettingsFileName=$iisAppSettingsXML;$iisWebMachinekeyFileName=$iisWebMachinekeyXML}
+                       }
+
+"Deploying config file $configFileS3Key from $buketName to folder $installFolderPath."
+
+#Include the CA RightScale library
+. $caRSLibPath
+
+try{
+  
+  #Change connection drain to int
+  $intDrainTime = [int]$connDrainTime
+  
+  #If connection drain out time is greater than 0 then dregister from ELB otherwise deploy config without deregistering
+  #Helpful in non-production environments without having to cause few seconds of downtime 
+  if ($intDrainTime -gt 0){
+    
+    "Deregistering instance because connection drian out time is greather than 0"
+    
+    #Get the list of ELB's or Target Groups to deregister from
+    $arrElbOrTargetGroup = $env:CA_SA_ELB_OR_TARGET_GROUP_NAME.split(",")
+    
+    # De-rgeister instance from all ELBs before deploying config files to make sure config files are not locked by the process
+    DeRegisterFromELB $region $blnClassicELB $arrElbOrTargetGroup $instanceID $connDrainTime
+  }
+  
+  #Deploy config files 
+  DeployConfigFile $region $bucketName $arrConfigFileS3Key $installFolderPath $tierName $tblExternalConfig
+
+  #Encrypt the config file if flag is set
+  if ($blnEncryptConfig.ToLower() -eq "true"){
+    EncryptTierConfigFiles $installFolderPath $tierName $tblExternalConfig
+  }
+
+  #Register instance if it was deregistered earlier
+  if ($intDrainTime -gt 0){
+    
+    #If SSL cert is intalled then set port number to 443 which is used later to register instance with ELB or Target Group otherwise
+    #use port 80
+    $portNumber = if ($installSSL.ToLower() -ne "true"){80} else {443}
+    
+    #Regeister instance with one or more ELBs after config deployment
+    RegisterWithELB $region $blnClassicELB $arrElbOrTargetGroup $instanceID $portNumber
+  }
+
+}catch{
+  "An error occured: $_"
+  exit 1
+}

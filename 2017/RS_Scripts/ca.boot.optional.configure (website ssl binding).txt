@@ -1,0 +1,84 @@
+# Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+$errorActionPreference = "Stop"
+ 
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+# Add $env: to force execute input if this code is ever uncommented
+if ([System.Convert]::ToBoolean($CA_REBOOT) -and !([System.Convert]::ToBoolean($env:CA_GLB_FORCE_EXECUTE))){
+          
+  write-host "Skipping after reboot."
+  exit 0
+}
+
+$installSSL = $env:CA_SA_BOOL_INSTALL_SSL
+$region = $env:CA_DPL_REGION
+$caRSLibPath = $env:CA_GBL_RS_LIB_FILE_PATH
+$bucketName = $env:CA_GBL_OPS_BUCKET_NAME
+$certFileS3Key = $env:CA_SA_CERT_FILE_S3_KEY
+$downloadPath = $env:CA_GBL_DOWNLOAD_FOLDER_PATH
+$hostHeader = $env:CA_GBL_HOST_HEADER
+$siteName = $env:CA_SA_WEB_SITE_NAME
+$pfxPassword = $env:CA_SA_CRED_PFX_PASSWORD
+
+if ($installSSL.ToLower() -ne "true"){
+  write-host "Skipping the SSL install on the instance because install SSL flag is set to $installSSL.ToLower()."
+  exit 0
+}
+
+#include the CA powershell library
+. $caRSLibPath
+
+#import WebAdmin module
+Import-Module WebAdministration;
+
+#Remove any existing certificates
+cd IIS:\SslBindings
+Get-ChildItem cert:\LocalMachine\My | Remove-Item
+
+#Download pfx file from S3
+$pfxFileName = GetS3File $region $bucketName $certFileS3Key $downloadPath
+
+#get local pfx file path
+$pfxFilePath = Join-Path $downloadPath $pfxFileName
+
+#import PFX cert into the store
+$KeyStorageFlags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable -bxor [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::MachineKeySet -bxor [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet;
+$pfx = new-object System.Security.Cryptography.X509Certificates.X509Certificate2
+
+#Call import function without password if PFX password INPUT is empty otherwise specify the password if it exists
+If ([string]::IsNullOrWhitespace($pfxPassword)){
+  $pfx.import($pfxFilePath,[string]::Empty,$KeyStorageFlags)
+}
+else
+{
+  $pfx.import($pfxFilePath,$pfxPassword,$KeyStorageFlags)
+}
+
+
+$thumbprint = $pfx.Thumbprint
+$store = new-object System.Security.Cryptography.X509Certificates.X509Store("My","LocalMachine")
+$store.open(“MaxAllowed”)
+$store.add($pfx)
+$store.close()
+
+#Create website binding if it doesn't exist
+if ($null -ne (Get-WebBinding | where-object {$_.bindinginformation -eq "*:443:$hostHeader"}))
+{
+  "Website $siteName binding already exists"
+}
+else
+{
+  "Creating a new binding for site $siteName"
+  
+  #create website binding, get SSL cert and bind assoicate it with port 443 for all IPs
+  New-WebBinding -Name $siteName -Port 443 -Protocol https -HostHeader $hostHeader
+}
+
+#Bind ssl cert with website. This won't work if binding has already been done before
+$sslCert = Get-ChildItem cert:\LocalMachine\My
+Get-Item cert:\LocalMachine\My\$($sslCert.Thumbprint) | New-Item 0.0.0.0!443
+
+#Remove local cert file
+Remove-Item -path $pfxFilePath -Force

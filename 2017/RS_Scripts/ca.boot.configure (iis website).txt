@@ -1,0 +1,56 @@
+# Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+$errorActionPreference = "Stop"
+ 
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+# Add $env: to force execute input if this code is ever uncommented
+if ([System.Convert]::ToBoolean($CA_REBOOT) -and !([System.Convert]::ToBoolean($env:CA_GLB_FORCE_EXECUTE))){
+          
+  write-host "Skipping after reboot."
+  exit 0
+}
+
+Import-Module WebAdministration
+
+# Initialize variables using RightScript inputs
+$webSiteName= $env:CA_SA_WEB_SITE_NAME
+$physicalPath = $env:CA_SA_INSTALL_FOLDER_PATH
+$restartTime = $env:CA_DPL_APP_POOL_BASE_RESTART_TIME
+$appPoolName = $env:CA_SA_APP_POOL_NAME
+$deploymentRegion = $env:CA_DPL_REGION
+$availabiltyZonePlacement = $env:EC2_PLACEMENT_AVAILABILITY
+
+
+try{
+
+  #determine which availabilty zone instance is in (A or B)
+  $isInAvailabiltyZoneB = $deploymentRegion+'b' -eq $availabiltyZonePlacement
+  #convert string to datetime object
+  $restartTime = [datetime]$restartTime
+  if($isInAvailabiltyZoneB){
+    $restartTime = $restartTime.AddHours(1)
+  }
+  #Assign a random minute within the hour
+  $minutes = Get-Random -Maximum 59
+  $restartTime = $restartTime.AddMinutes($minutes)
+  #convert datetime back to string of format HH:mm
+  $restartTime = "{0:HH:mm}" -f $restartTime
+  "Adding app pool recycle schedule for $restartTime"
+  
+  New-ItemProperty -Path "IIS:\AppPools\$appPoolName" -Name Recycling.periodicRestart.schedule -Value @{value=$restartTime}
+
+
+  #Set the idle timeout
+  Set-ItemProperty ("IIS:\AppPools\"+$appPoolName) -Name processModel.idleTimeout -value ( [TimeSpan]::FromMinutes(0))
+
+  # Create website
+  New-Website -Name $webSiteName -Port 80 -ApplicationPool $appPoolName -PhysicalPath $physicalPath -force
+
+  "Created a website $webSiteName."
+
+}
+catch{
+    "An error occured: $_"
+}

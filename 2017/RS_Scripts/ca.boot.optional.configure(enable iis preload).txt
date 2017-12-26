@@ -1,0 +1,49 @@
+# Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+$errorActionPreference = "Stop"
+ 
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+# Add $env: to force execute input if this code is ever uncommented
+if ([System.Convert]::ToBoolean($CA_REBOOT) -and !([System.Convert]::ToBoolean($env:CA_GLB_FORCE_EXECUTE))){
+          
+  write-host "Skipping after reboot."
+  exit 0
+}
+
+[System.Reflection.Assembly]::LoadFrom("C:\windows\system32\inetsrv\Microsoft.Web.Administration.dll")
+Import-Module WebAdministration
+$webSiteName= $env:CA_SA_WEB_SITE_NAME
+$appPoolName = $env:CA_SA_APP_POOL_NAME
+$initPage = $env:CA_SA_INIT_PAGE
+$enableIISPreload = $env:CA_SA_ENABLE_IIS_PRELOAD
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+if($enableIISPreload -eq "True"){
+  Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $webSiteName -filter "system.webServer/applicationInitialization" -name "." -value @{initializationPage=$initPage;hostName='localhost'}
+  cd IIS:/AppPools
+  $ApplicationPools = dir
+  foreach ($item in $ApplicationPools)
+  {
+      
+      $ApplicationPoolName = $item.Name
+      if($ApplicationPoolName -eq $appPoolName)
+      {
+          $AppPool = Get-Item $ApplicationPoolName
+          $AppPool.autoStart = 'true'
+          $AppPool.startmode = 'alwaysrunning'
+          $AppPool | Set-Item
+      }
+  }
+  $serverManager = (New-Object Microsoft.Web.Administration.ServerManager)
+  $serverManager.Sites[$webSiteName].Applications["/"].SetAttributeValue("serviceAutoStartEnabled", $true)
+  $serverManager.Sites[$webSiteName].Applications["/"].SetAttributeValue("preloadEnabled", $true)
+  $serverManager.CommitChanges()
+  
+  Stop-Website $webSiteName
+  Start-Website $webSiteName
+}
+else{
+    Write-Output "IIS Preloading will not be enabled"
+}

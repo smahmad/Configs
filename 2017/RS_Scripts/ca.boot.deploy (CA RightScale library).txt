@@ -1,0 +1,25 @@
+# Powershell 2.0
+# Copyright (c) 2008-2013 RightScale, Inc, All Rights Reserved Worldwide.
+
+$errorActionPreference = "Stop"
+ 
+$CA_REBOOT = [environment]::GetEnvironmentVariable("CA_REBOOT","Machine")
+
+# Add $env: to force execute input if this code is ever uncommented
+if ([System.Convert]::ToBoolean($CA_REBOOT) -and !([System.Convert]::ToBoolean($env:CA_GLB_FORCE_EXECUTE))){
+          
+  write-host "Skipping after reboot."
+  exit 0
+}
+
+$bucketName = $env:CA_GBL_OPS_BUCKET_NAME
+$rsLibS3KeyName = $env:CA_DPL_RS_LIB_S3_KEY_NAME
+$rsLibFilePath = $env:CA_GBL_RS_LIB_FILE_PATH
+$region = $env:CA_DPL_REGION
+
+"Downloading RightScale powershell library using S3 key $rsLibS3KeyName"
+
+#download CA RS library from S3 
+read-s3object  -BucketName $bucketName -key $rsLibS3KeyName -File $rsLibFilePath -region $region
+    
+        

@@ -1,1 +1,1 @@
-[Environment]::SetEnvironmentVariable("CA_REBOOT", "True", "Machine")
+[Environment]::SetEnvironmentVariable("CA_REBOOT", "True", "Machine")test

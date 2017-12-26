@@ -85,4 +85,4 @@ if ($blnMatched){
 else{
    "An error occured."
     exit 1
-}
+}test

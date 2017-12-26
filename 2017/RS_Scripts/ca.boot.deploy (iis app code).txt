@@ -114,3 +114,4 @@ catch{
     "An error occured: $_"
     exit 1
 }
+test

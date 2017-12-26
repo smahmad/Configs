@@ -81,4 +81,4 @@ $sslCert = Get-ChildItem cert:\LocalMachine\My
 Get-Item cert:\LocalMachine\My\$($sslCert.Thumbprint) | New-Item 0.0.0.0!443
 
 #Remove local cert file
-Remove-Item -path $pfxFilePath -Force
+Remove-Item -path $pfxFilePath -Forcetest

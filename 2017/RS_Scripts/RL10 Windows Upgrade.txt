@@ -193,3 +193,4 @@ if ($newVersion -eq $desiredVersion) {
   Write-Output "Updated version does not appear to be desired version: ${newVersion}"
   Exit 1
 }
+test

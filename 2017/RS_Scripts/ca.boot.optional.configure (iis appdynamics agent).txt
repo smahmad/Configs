@@ -50,3 +50,4 @@ $service.WaitForStatus("Running", '00:02:00')
 #restart service to be monitored
 Write-Host "Starting IIS"
 Start-Process "iisreset" -ArgumentList "/start" -Wait
+test

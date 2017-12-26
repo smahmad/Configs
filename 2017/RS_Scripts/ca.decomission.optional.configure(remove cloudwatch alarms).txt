@@ -56,4 +56,4 @@ Write-Output $relevantAlarms
 if($relevantAlarms.Count -gt 0){
     Write-Output "Removing Alarms"
     Remove-CWAlarm -AlarmName $relevantAlarms -Force
-}
+}test

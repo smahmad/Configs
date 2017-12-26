@@ -3,4 +3,4 @@ $operation = $env:CA_OP_APP_POOL_OPERATION
 
 echo "c:\windows\system32\inetsrv\appcmd $operation apppool $poolName"
 
-cmd /c "c:\windows\system32\inetsrv\appcmd $operation apppool $poolName"
+cmd /c "c:\windows\system32\inetsrv\appcmd $operation apppool $poolName"test

@@ -92,3 +92,4 @@ Remove-Item temp.txt
 
 Restart-Service "Amazon SSM Agent"
 
+test

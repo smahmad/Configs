@@ -74,3 +74,4 @@ Add-Content -path c:\sumo\sumo.conf -value accesskey=$sumoLogicAPISecretKey
 xcopy c:\sumo\*.* c:\misc\*.* /Y
 
 c:\misc\SumoCollector_windows-x64.exe -q
+test

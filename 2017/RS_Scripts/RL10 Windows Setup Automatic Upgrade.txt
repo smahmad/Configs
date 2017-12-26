@@ -98,3 +98,4 @@ Log "RightlinkUpgrader: Upgrade found from `$currentVersion to `$desiredVersion"
     Exit 1
   }
 }
+test

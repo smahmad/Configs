@@ -22,4 +22,4 @@ $region = $env:CA_DPL_REGION
 #download CA RS library from S3 
 read-s3object  -BucketName $bucketName -key $rsLibS3KeyName -File $rsLibFilePath -region $region
     
-        
+        test

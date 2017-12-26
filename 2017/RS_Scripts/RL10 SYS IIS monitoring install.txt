@@ -1,2 +1,2 @@
 Copy-Item "$Env:RS_ATTACH_DIR\iis-monitoring.ps1" "c:\misc"
-rsc rl10 create /rll/tss/exec/iis executable="c:\misc\iis-monitoring.ps1"
+rsc rl10 create /rll/tss/exec/iis executable="c:\misc\iis-monitoring.ps1"test

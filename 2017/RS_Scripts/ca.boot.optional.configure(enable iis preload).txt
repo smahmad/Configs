@@ -46,4 +46,4 @@ if($enableIISPreload -eq "True"){
 }
 else{
     Write-Output "IIS Preloading will not be enabled"
-}
+}test

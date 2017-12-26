@@ -34,3 +34,4 @@ Write-Output "  Combined DECOM_REASON is: ${decom_reason}"
 Write-Output ""
 Write-Output "exporting DECOM_REASON=$decom_reason into the environment for subsequent scripts"
 & "${RIGHTLINK_DIR}\rsc.exe" rl10 --retry=5 --timeout=10 update /rll/env/DECOM_REASON payload=${decom_reason}
+test

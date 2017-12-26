@@ -54,3 +54,4 @@ try{
 catch{
     "An error occured: $_"
 }
+test

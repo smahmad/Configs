@@ -81,7 +81,7 @@ Deploy "Lambda-bucket.yml" into master account. This template will create follow
 
 |Parameter           |Description                                                                           |Allowed values |
 |--------------------|--------------------------------------------------------------------------------------|---------------|
-|BucketNameForLambda |Name of the Bucket to create for Lambda to deploy in it - e.g. lambda-bucket         |[Valid S3 Bucket Name](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html). |
+|BucketNameForLambda |Name of the Bucket to create for Lambda to deploy in it - e.g. lambda-bucket         |[Valid S3 Bucket Name](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)|
 |ARNlist |Comma delimited list of ARNs for the root accounts to deploy Lambda - e.g. arn:aws:iam::999999999999:root,arn:aws:iam::999999999999:root        |[Valid AWS Account Id](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html)|
 
 #### Package and Upload the artifacts
@@ -110,15 +110,34 @@ CloudformationTemplate>aws cloudformation package --template-file cloudwtch_logs
 
 2. Give meaningful name to StackSet
 
-3. Specify stack parameters as you would a single CloudFormation template. These parameters will be applied in each Target Account
+3. Specify stack parameters as you would a single CloudFormation template. These parameters will be applied in each Target Account.
+4. 
+**Parameters in Template**
 
+| Parameter                        | Description                                                  | Allowed values                                               |
+| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| pCloudwatchLogsBucketName        | Name of the S3 Bucket where Logs are to be archived        | [Valid S3 Bucket Name](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)                                                   |
+| pTargetId                        | Name for the target ID to cloudwatch rule.                   | Include alphanumeric characters, periods (.), hyphens (-), and underscores (_). |
+| pSnsTopicName                    | A name for sns topic                                         | String                                                       |
+| pOwnerEmail                      | An Email Address for export logs Notification.               | Email Address                                                |
+| pTimePeriodForLambda             | The time period (in hours) Lambda function will go to Cloudwatch  and copy Logs to AWS S3 bucket. For example, if we set this to 24 hours, the logs will be copied once in a day | Number                                                       |
+| pNumberOfDaysToMoveToSTANDARDIA  | Enter number of days tp move the S3  Bucket into AWS STANDARD_IA | Number                                                       |
+| pNumberOfDaysToMoveToONEZONEIA   | Enter number of days tp move the S3  Bucket into AWS ONEZONE_IA | Number                                                       |
+| pNumberOfDaysToMoveToGlacier     | Enter number of days tp move the S3 Bucket into AWS Glacier  | Number                                                       |
+| pNumberOfDaysToMoveToDEEPARCHIVE | Enter number of days tp move the S3  Bucket into AWS  DEEP_ARCHIVE | Number                                                       |
 4. Enter appropriate tags to identify rescources
 
 5. Select one of the permissions
 
     - Service Manged Permissions - allows StackSets to automatically configure the necessary IAM permissions required to deploy stack to the accounts in your organization
 
-    - Self managed permissions - Choose the IAM role AWSCloudFormationStackSetAdministrationRole for CloudFormation to use for all operations performed on the stack 
+    - Self Managed Permissions - Choose the IAM role AWSCloudFormationStackSetAdministrationRole for CloudFormation to use for all operations performed on the stack 
+
+```
+**Note:**
+
+If Self Managed permissions is selected then all target accounts should have 'AWSCloudFormationStackSetExecutionRole' role with trust relationship to Role 'AWSCloudFormationStackSetAdministrationRole'.
+```
 
 6. Select one of the deployment options
 

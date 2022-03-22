@@ -2,8 +2,9 @@
 
 # Automate the life cycle of default CloudWatch log in multiple accounts
 
+This section covers an introductory note about CloudWatch and deployment steps.
 
-### Amazon CloudWatch Logs
+## Amazon CloudWatch Logs
 
 Amazon CloudWatch Logs to monitor, store, and access your log files from Amazon Elastic Compute Cloud (Amazon EC2) instances, AWS CloudTrail, Route 53, and other sources.
 
@@ -57,7 +58,7 @@ Retention settings can be used to specify how long log events are kept in CloudW
 
 ![Solution Diagram](https://user-images.githubusercontent.com/60149354/109172443-98648b00-77a4-11eb-943b-2d1766d799c3.png)
 
-# Package Contents
+## Package Contents
 
 a. Cloudformation-for-lambda-bucket\Lambda-bucket.yml
 
@@ -65,7 +66,7 @@ b. CloudformationTemplate\cloudwtch_logs_exporting_s3_bucket.yml
 
 c. Lambda\cloudwtch_logs_exporting_s3_bucket\index.py
 
-# Deployment steps
+## Deployment steps
 
 
 1. Deploy "Lambda-bucket.yml" inside "cloudformation-for-lambda-bucket" folder into master account. This template will create following resources

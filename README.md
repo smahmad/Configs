@@ -153,4 +153,30 @@ If Self Managed permissions is selected then all target accounts should have 'AW
 
 10. Create StackSet
 
+## Deployment Notes
+
+1. The cloudformation template on target will create s3 bucket in the same region,put bucket policy, bucket life cycle policy to send logs into deep archive after specified days, export the cloudwatch logs to s3 bucket through lambda function and cloudwatch rule to trigger lambda everyday.
+
+2. The log group filter will match log group by "retention period". 
+
+3. AWS CW Log exports doesn't effectively keep track of logs that are exported previously in a native way. 
+
+4. To avoid exporting the same data twice, this function uses a timeframe of 24 hour period. This period is the 1 day in the past.
+
+5. Lambda function will run to keep the log export everyday.
+
+6. The default time for awaiting task completion is 5 Minutes(300 Seconds). Customize in `global_vars`.
+
+7. FROM AWS Docs,Export task: One active (running or pending) export task at a time, per account. This limit cannot be changed.
+
+   https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html
+
+8. Increase Lambde Timeout based on requirements.
+
+9. Lambda IAM - Role: CloudWatch Access List/Read & S3 Bucket - HEAD, List, Put.
+
+10. You need to Trigger lambda manually first time, then it will trigger Automatically on daily basis.
+
+11. At the End Email will be sent to the user email provided through parameter.
+
 ## Testing

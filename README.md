@@ -106,30 +106,30 @@ CloudformationTemplate>aws cloudformation package --template-file cloudwtch_logs
 ```
 #### Deploying the “packaged” template
 
-To deploy StackSet, select the cloudwtch_logs_exporting_s3_bucket_packaged.yml in master account to deploy StackSets in the Target Accounts.
+1. To deploy StackSet, select the cloudwtch_logs_exporting_s3_bucket_packaged.yml in master account to deploy StackSets in the Target Accounts. this template will create S3 Bucket , Put Bucket Policy, Lambda, Export cloudwatch logs to that Bucket, cloudwatch Rule
 
-Give meaningful name to StackSet
+2. Give meaningful name to StackSet
 
-Specify stack parameters as you would a single CloudFormation template. These parameters will be applied in each Target Account
+3. Specify stack parameters as you would a single CloudFormation template. These parameters will be applied in each Target Account
 
-Enter appropriate tags to identify rescources
+4. Enter appropriate tags to identify rescources
 
-Select one of the permissions
+5. Select one of the permissions
 
     - Service Manged Permissions - allows StackSets to automatically configure the necessary IAM permissions required to deploy stack to the accounts in your organization
 
     - Self managed permissions - Choose the IAM role AWSCloudFormationStackSetAdministrationRole for CloudFormation to use for all operations performed on the stack 
 
-Select one of the deployment options
+6. Select one of the deployment options
 
     - Account Numbers - Specify the account numbers of the Target Accounts
 
     - Organization unit - Specify the OU ID
 
-Specify the region(s)
+7. Specify the region(s)
 
-Determine deployment strategy (like multiple regions, multiple accounts etc)
+8. Determine deployment strategy (like multiple regions, multiple accounts etc)
 
-Review the deployment
+9. Review the deployment
 
-Create StackSet
+10. Create StackSet

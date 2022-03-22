@@ -1,5 +1,3 @@
-
-
 # Automate the life cycle of default CloudWatch log in multiple accounts
 
 This section covers an introductory note about CloudWatch and deployment steps.

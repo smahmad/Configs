@@ -81,5 +81,5 @@ Deploy "Lambda-bucket.yml" into master account. This template will create follow
 
 |Parameter           |Description                                                                           |Allowed values |
 |--------------------|--------------------------------------------------------------------------------------|---------------|
-|BucketNameForLambda | Name of the Bucket to create for Lambda to deploy in it - e.g. lambda-bucket         | [Valid S3 Bucket Name](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html). |
-|ARNlist | Comma delimited list of ARNs for the root accounts to deploy - e.g. arn:aws:iam::999999999999:root,arn:aws:iam::999999999999:root        | Valid AWS Account Id |
+|BucketNameForLambda |Name of the Bucket to create for Lambda to deploy in it - e.g. lambda-bucket         |[Valid S3 Bucket Name](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html). |
+|ARNlist |Comma delimited list of ARNs for the root accounts to deploy - e.g. arn:aws:iam::999999999999:root,arn:aws:iam::999999999999:root        |[Valid AWS Account Id](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html)|

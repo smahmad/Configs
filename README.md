@@ -81,4 +81,4 @@ Deploy "Lambda-bucket.yml" into master account. This template will create follow
 
 |Parameter           |Description                                                                           |Allowed values |
 |--------------------|--------------------------------------------------------------------------------------|---------------|
-|BucketNameForLambda | Name of the Bucket to create for Lambda to deploy in it - e.g. lambda-bucket         | lower, 3 min and 63 max [GitHub Pages](https://pages.github.com/). |
+|BucketNameForLambda | Name of the Bucket to create for Lambda to deploy in it - e.g. lambda-bucket         | [lower, 3 min and 63 max](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html). |

@@ -92,6 +92,7 @@ The aws cloudformation package does follow actions:
    - Generates a new template where the local paths are replaced with the S3 URIs.
 
 **Run the package command:**
+
 Navigate into the path "Cloudwatch_logs_export_to_s3\CloudformationTemplate" and use cloudformation packaged command given below:
 
 ```
@@ -103,3 +104,32 @@ e.g.
 ```
 CloudformationTemplate>aws cloudformation package --template-file cloudwtch_logs_exporting_s3_bucket.yml --s3-bucket lambda-bucket --output-template-file cloudwtch_logs_exporting_s3_bucket_packaged.yml
 ```
+#### Deploying the “packaged” template
+
+To deploy StackSet, select the cloudwtch_logs_exporting_s3_bucket_packaged.yml in master account to deploy StackSets in the Target Accounts.
+
+Give meaningful name to StackSet
+
+Specify stack parameters as you would a single CloudFormation template. These parameters will be applied in each Target Account
+
+Enter appropriate tags to identify rescources
+
+Select one of the permissions
+
+    - Service Manged Permissions - allows StackSets to automatically configure the necessary IAM permissions required to deploy stack to the accounts in your organization
+
+    - Self managed permissions - Choose the IAM role AWSCloudFormationStackSetAdministrationRole for CloudFormation to use for all operations performed on the stack 
+
+Select one of the deployment options
+
+    - Account Numbers - Specify the account numbers of the Target Accounts
+
+    - Organization unit - Specify the OU ID
+
+Specify the region(s)
+
+Determine deployment strategy (like multiple regions, multiple accounts etc)
+
+Review the deployment
+
+Create StackSet

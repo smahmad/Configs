@@ -69,15 +69,13 @@ c. Lambda\cloudwtch_logs_exporting_s3_bucket\index.py
 ## Deployment steps
 
 
-### Deploy "Lambda-bucket.yml" into master account. 
+Deploy "Lambda-bucket.yml" into master account. 
 
-Deploy "Lambda-bucket.yml" into master account. This template will create following resources:
+1. Deploy "Lambda-bucket.yml" into master account. This template will create following resources:
 
-***s3 bucket:***   s3 bucket in master account where this package will be deployed  - e.g. lambda-bucket.
-
-***Bucket policy:***   This template will create bucket policy for the created bucket to grant access for multiaccount to Lambda code and deploy it through Stack set.
-
-***Parameters in Template:***
+   -***s3 bucket:***   s3 bucket in master account where this package will be deployed  - e.g. lambda-bucket.
+   -***Bucket policy:***   This template will create bucket policy for the created bucket to grant access for multiaccount to Lambda code and deploy it through Stack set.
+   -***Parameters in Template:***
 
 |Parameter           |Description                                                                           |Allowed values |
 |--------------------|--------------------------------------------------------------------------------------|---------------|

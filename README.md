@@ -1,6 +1,6 @@
 
 
-A. Automate the life cycle of default CloudWatch log in multiple accounts
+# Automate the life cycle of default CloudWatch log in multiple accounts
 
 
 ### Amazon CloudWatch Logs

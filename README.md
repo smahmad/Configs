@@ -4,7 +4,7 @@
 
 
 1. Deploy "Lambda-bucket.yml" inside "cloudformation-for-lambda-bucket" folder into master account. This template will create following resources
-1. Deploy "Lambda-bucket.yml" inside "cloudformation-for-lambda-bucket" folder into master account. This template will create following resources
+
 **s3 bucket**   s3 bucket in master account where this package will be deployed  - e.g. lambda-bucket.
 
 ## Bucket policy    

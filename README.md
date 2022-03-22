@@ -87,8 +87,19 @@ Deploy "Lambda-bucket.yml" into master account. This template will create follow
 #### Package and Upload the artifacts
 
 The aws cloudformation package does follow actions:
-   - ZIPs up the local files.
-   - Uploads them to a designated S3 bucket.
+   - ZIPs up the local files ( lamda ).
+   - Uploads them to a designated (lambda-bucket) S3 bucket.
    - Generates a new template where the local paths are replaced with the S3 URIs.
 
+**Run the package command:**
+Navigate into the path "Cloudwatch_logs_export_to_s3\CloudformationTemplate" and use cloudformation packaged command given below:
 
+```
+aws cloudformation package --template-file </path_to_template/template.yml> --s3-bucket bucket-name --output-template-file <packaged-template.yml>
+```
+
+e.g.
+
+```
+CloudformationTemplate>aws cloudformation package --template-file cloudwtch_logs_exporting_s3_bucket.yml --s3-bucket lambda-bucket --output-template-file cloudwtch_logs_exporting_s3_bucket_packaged.yml
+```

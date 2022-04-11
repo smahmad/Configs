@@ -81,6 +81,38 @@ A rules package corresponds to a security goal that you might have. You can spec
 
 ## **Deployment steps**
 
+
+   - ***s3 bucket:***   s3 bucket in master account where this package will be deployed  - e.g. lambda-bucket.
+   
+   - ***Bucket policy:***   This template will create bucket policy for the created bucket to grant access for multiaccount to Lambda code and deploy it through Stack set.
+   
+**Parameters in Template:**
+
+|Parameter           |Description                                                                           |Allowed values |
+|--------------------|--------------------------------------------------------------------------------------|---------------|
+|BucketNameForLambda |Name of the Bucket to create for Lambda to deploy in it - e.g. lambda-bucket         |[Valid S3 Bucket Name](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)|
+|ARNlist |Comma delimited list of ARNs for the root accounts to deploy Lambda - e.g. arn:aws:iam::999999999999:root,arn:aws:iam::999999999999:root        |[Valid AWS Account Id](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html)|
+
+#### Package and Upload the artifacts
+
+The aws cloudformation package does follow actions:
+   - ZIPs up the local files ( lamda ).
+   - Uploads them to a designated (lambda-bucket) S3 bucket.
+   - Generates a new template where the local paths are replaced with the S3 URIs.
+
+**Run the package command:**
+
+Navigate into the path "Cloudwatch_logs_export_to_s3\CloudformationTemplate" and use cloudformation packaged command given below:
+
+```
+aws cloudformation package --template-file </path_to_template/template.yml> --s3-bucket bucket-name --output-template-file <packaged-template.yml>
+```
+
+e.g.
+
+```
+CloudformationTemplate>aws cloudformation package --template-file cloudwtch_logs_exporting_s3_bucket.yml --s3-bucket lambda-bucket --output-template-file cloudwtch_logs_exporting_s3_bucket_packaged.yml
+```
 1. Deploy **inspetor_deployment.yml** through stack set in desire account. It will create  resources i.e   resource group, assessment target, configure the assessment template and run that assessment template.
 
    **Parameters in Template**

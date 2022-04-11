@@ -134,6 +134,9 @@ aws cloudformation package --template-file inspector_deployment.yml --s3-bucket 
 
 ## Amazon Security Hub
 
+
+GuardDuty and Security Hub is enabled in all AWS Accounts within the AWS Organizations. So following  is just for reference, if security hub is not auto enable with in organization or you want to enable security hub not only with in organisation, also for across account.
+
 **AWS Security Hub Multiaccount Scripts**
 
 https://github.com/awslabs/aws-securityhub-multiaccount-scripts

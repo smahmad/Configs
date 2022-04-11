@@ -1,180 +1,224 @@
-# Automate the life cycle of default CloudWatch log in multiple accounts
+# Deploy & Configure AWS Inspector to Scan Instances
 
-This section covers an introductory note about CloudWatch and deployment steps.
+The designed solution involves setting up the AWS Inspector  automation solution in each AWS account through AWS CloudFormation StackSets in a Master account.
 
-## Amazon CloudWatch Logs
+## **AWS Services Used In Solution**
 
-Amazon CloudWatch Logs to monitor, store, and access your log files from Amazon Elastic Compute Cloud (Amazon EC2) instances, AWS CloudTrail, Route 53, and other sources.
+- AWS  Inspector
 
-CloudWatch Logs enables you to centralize the logs from all of your systems, applications, and AWS services that you use, in a single, highly scalable service. You can then easily view them, search them for specific error codes or patterns, filter them based on specific fields, or archive them securely for future analysis.
+- AWS Security Hub
 
-**Log events**
+ 
+## Amazon Inspector
 
-A log event is a record of some activity recorded by the application or resource being monitored. The log event record that CloudWatch Logs understands contains two properties: the timestamp of when the event occurred, and the raw event message. Event messages must be UTF-8 encoded.
-
-**Log streams**
-
-A log stream is a sequence of log events that share the same source. More specifically, a log stream is generally intended to represent the sequence of events coming from the application instance or resource being monitored. For example, a log stream may be associated with an Apache access log on a specific host. When you no longer need a log stream, you can delete it using the [aws logs delete-log-stream](https://docs.aws.amazon.com/cli/latest/reference/logs/delete-log-stream.html) command.
-
-**Log groups**
-
-Log groups define groups of log streams that share the same retention, monitoring, and access control settings. Each log stream has to belong to one log group. For example, if you have a separate log stream for the Apache access logs from each host, you could group those log streams into a single log group called `MyWebsite.com/Apache/access_log`.
-
-There is no limit on the number of log streams that can belong to one log group.
-
-**Metric filters**
-
-You can use metric filters to extract metric observations from ingested events and transform them to data points in a CloudWatch metric. Metric filters are assigned to log groups, and all of the filters assigned to a log group are applied to their log streams.
-
-**Retention settings**
-
-Retention settings can be used to specify how long log events are kept in CloudWatch Logs. Expired log events get deleted automatically. Just like metric filters, retention settings are also assigned to log groups, and the retention assigned to a log group is applied to their log streams.
-
-**Log Retention** – By default, logs are kept indefinitely and never expire. You can adjust the retention policy for each log group, keeping the indefinite retention, or choosing a retention period between 10 years and one day.
+Amazon Inspector tests the network accessibility of your Amazon EC2 instances and the security state of your applications that run on those instances. Amazon Inspector assesses applications for exposure, vulnerabilities, and deviations from best practices. After performing an assessment, Amazon Inspector produces a detailed list of security findings that is organized by level of severity.
 
 
 
-**AWS Services Used In Solution**
-
-- AWS CloudWatch - Logs to be exported.
-
-- AWS Lambda - to run the codes (the version of the python code developed is 3.7)
-
-- AWS S3 - to keep Logs Backup.
-
-- AWS CloudFormation Template - to automate the solution.
-
-- AWS SNS
-
-  
-
-**Solution Design**
+**Following are the key components:** 
 
 
 
+**Amazon Inspector agent**
+
+A software agent that you can install on the EC2 instances that are included in the assessment target. The agent collects a wide set of configuration data. 
+https://docs.aws.amazon.com/inspector/latest/userguide/inspector_supported_os_regions.html
+
+**Assessment target**
+
+A collection of AWS resources that work together as a unit to help you accomplish your business goals. Amazon Inspector evaluates the security state of the resources that constitute the assessment target.
+
+**Note**
+
+To create an Amazon Inspector assessment target, you must first tag your EC2 instances with key-value pairs of your choice. Next, you can create a view of these tagged EC2 instances that have common keys or common values.
+
+**Assessment template**
+
+A configuration that is used during your assessment run. The template includes the following:
+
+  - Rules packages that Amazon Inspector uses to evaluate your assessment target
+
+  - Amazon SNS topics that you want Amazon Inspector to send notifications to about assessment run states and findings
+
+  - Tags (key-value pairs) that you can assign to findings that are generated by the assessment run
+
+  - The duration of the assessment run
+
+**Assessment run**
+
+  - During an assessment run, Amazon Inspector monitors, collects, and analyzes configuration data (telemetry) from resources within the specified target. Next, Amazon Inspector     analyzes the data and compares it against a set of security rules packages that are specified in the assessment template used during the assessment run. 
+
+  - A completed assessment run produces a list of findings, which are potential security issues of various levels of severity. 
+
+**Finding**
+
+A potential security issue that Amazon Inspector discovers during an assessment run of the specified target. Findings are displayed in the Amazon Inspector console or retrieved through the API. They contain both a detailed description of the security issue and a recommendation on how to fix it.
+
+**Rule**
+
+In the context of Amazon Inspector, a security check performed during an assessment run. When a rule detects a potential security issue, Amazon Inspector generates a finding that describes the issue.
+
+**Rules package**
+
+A rules package corresponds to a security goal that you might have. You can specify your security goal by selecting the appropriate rules package when you create an Amazon Inspector assessment template.
+
+## Deployment
 
 
-![Solution Diagram](https://user-images.githubusercontent.com/60149354/109172443-98648b00-77a4-11eb-943b-2d1766d799c3.png)
 
-## Package Contents
+1. In the master account, an AWS CloudFormation stack set is used to create the resource group, assessment target, configure the assessment template and run that assessment template (through lambda function which include the Crhelper Module ).
 
-a. Cloudformation-for-lambda-bucket\Lambda-bucket.yml
+2. AWS Security Hub Multiaccount Scripts (These scripts automate the process of enabling and disabling AWS Security Hub simultaneously across a group of AWS accounts that are in your control. (Note, that you can have one master account and up to a 1000 member accounts) 
 
-b. CloudformationTemplate\cloudwtch_logs_exporting_s3_bucket.yml
-
-c. Lambda\cloudwtch_logs_exporting_s3_bucket\index.py
-
-## Deployment steps
-
-
-#### Deploy "Lambda-bucket.yml" into master account
-
-Deploy "Lambda-bucket.yml" into master account. This template will create following resources:
-
-   - ***s3 bucket:***   s3 bucket in master account where this package will be deployed  - e.g. lambda-bucket.
    
-   - ***Bucket policy:***   This template will create bucket policy for the created bucket to grant access for multiaccount to Lambda code and deploy it through Stack set.
+
+
+| ***SrNo.\*** | ***File\***              | ***Description\***                                           | ***Location\*** |
+| ------------ | ------------------------ | ------------------------------------------------------------ | --------------- |
+| 1            | inspector_deployment.yml | Create resource group, assessment target, configure the assessment template and run that assessment template. | AWS-Inspector   |
+
    
-**Parameters in Template:**
 
-|Parameter           |Description                                                                           |Allowed values |
-|--------------------|--------------------------------------------------------------------------------------|---------------|
-|BucketNameForLambda |Name of the Bucket to create for Lambda to deploy in it - e.g. lambda-bucket         |[Valid S3 Bucket Name](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)|
-|ARNlist |Comma delimited list of ARNs for the root accounts to deploy Lambda - e.g. arn:aws:iam::999999999999:root,arn:aws:iam::999999999999:root        |[Valid AWS Account Id](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html)|
+## **Deployment steps**
 
-#### Package and Upload the artifacts
+1. Deploy **inspetor_deployment.yml** through stack set in desire account. It will create  resources i.e   resource group, assessment target, configure the assessment template and run that assessment template.
 
-The aws cloudformation package does follow actions:
-   - ZIPs up the local files ( lamda ).
-   - Uploads them to a designated (lambda-bucket) S3 bucket.
-   - Generates a new template where the local paths are replaced with the S3 URIs.
+   **Parameters in Template**
 
-**Run the package command:**
+   | Parameter               | Description                                   | Allowed values/Default |
+   | ----------------------- | --------------------------------------------- | ---------------------- |
+   | pAssessmentTemplateName | The name of the Assessment Template           | Eq-AssessmentTemplate  |
+   | pAssessmentTargetName   | The name of the Assessment Target             | Eq-AssessmentTarget    |
+   | pResourceGroupTagsKey   | The Value name of the tag of the resource     | Patch Group            |
+   | pResourceGroupTagsValue | The key name of the tag of the resource       | Dev                    |
+   | pDurationInSeconds      | The duration of the assessment run in seconds | 180                    |
 
-Navigate into the path "Cloudwatch_logs_export_to_s3\CloudformationTemplate" and use cloudformation packaged command given below:
 
-```
-aws cloudformation package --template-file </path_to_template/template.yml> --s3-bucket bucket-name --output-template-file <packaged-template.yml>
-```
 
-e.g.
+   ####  AWS cli packaged command:
+   ```
+   aws cloudformation package --template-file inspector_deployment.yml --s3-bucket patch-lambda-code --output-template-file inspector_deployment_packaged.yml
+   ```
+## Amazon Security Hub
 
-```
-CloudformationTemplate>aws cloudformation package --template-file cloudwtch_logs_exporting_s3_bucket.yml --s3-bucket lambda-bucket --output-template-file cloudwtch_logs_exporting_s3_bucket_packaged.yml
-```
-#### Deploying the “packaged” template
+**AWS Security Hub Multiaccount Scripts**
 
-1. To deploy StackSet, select the cloudwtch_logs_exporting_s3_bucket_packaged.yml in master account to deploy StackSets in the Target Accounts. this template will create S3 Bucket , Put Bucket Policy, Lambda, Export cloudwatch logs to that Bucket, cloudwatch Rule
+https://github.com/awslabs/aws-securityhub-multiaccount-scripts
 
-2. Give meaningful name to StackSet
+**Security hub reports filtering**
 
-3. Specify stack parameters as you would a single CloudFormation template. These parameters will be applied in each Target Account.
-4. 
-**Parameters in Template**
+When you display a list of findings from the Findings page, the Integrations page, or the Insights page, the list is always filtered based on the record state and workflow status. 
 
-| Parameter                        | Description                                                  | Allowed values                                               |
-| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| pCloudwatchLogsBucketName        | Name of the S3 Bucket where Logs are to be archived        | [Valid S3 Bucket Name](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)                                                   |
-| pTargetId                        | Name for the target ID to cloudwatch rule.                   | Include alphanumeric characters, periods (.), hyphens (-), and underscores (_). |
-| pSnsTopicName                    | A name for sns topic                                         | String                                                       |
-| pOwnerEmail                      | An Email Address for export logs Notification.               | Email Address                                                |
-| pTimePeriodForLambda             | The time period (in hours) Lambda function will go to Cloudwatch  and copy Logs to AWS S3 bucket. For example, if we set this to 24 hours, the logs will be copied once in a day | Number                                                       |
-| pNumberOfDaysToMoveToSTANDARDIA  | Enter number of days tp move the S3  Bucket into AWS STANDARD_IA | Number                                                       |
-| pNumberOfDaysToMoveToONEZONEIA   | Enter number of days tp move the S3  Bucket into AWS ONEZONE_IA | Number                                                       |
-| pNumberOfDaysToMoveToGlacier     | Enter number of days tp move the S3 Bucket into AWS Glacier  | Number                                                       |
-| pNumberOfDaysToMoveToDEEPARCHIVE | Enter number of days tp move the S3  Bucket into AWS  DEEP_ARCHIVE | Number                                                       |
-4. Enter appropriate tags to identify rescources
+- The record state indicates whether the finding is active or archived.
+- The workflow status indicates the status of the investigation into the finding.
+- The severity of the finding.
+  - The finding must have either Label or Normalized populated.
+  - If only one of these attributes is populated, then Security Hub automatically populates the other one. 
+  - If neither attribute is populated, then the finding is invalid. Label is the preferred attribute.
+    - Label
+      The severity value of the finding. The allowed values are the following.
 
-5. Select one of the permissions
+      INFORMATIONAL - No issue was found.
 
-    - Service Manged Permissions - allows StackSets to automatically configure the necessary IAM permissions required to deploy stack to the accounts in your organization
+      LOW - The issue does not require action on its own.
 
-    - Self Managed Permissions - Choose the IAM role AWSCloudFormationStackSetAdministrationRole for CloudFormation to use for all operations performed on the stack 
+      MEDIUM - The issue must be addressed but not urgently.
 
-```
-**Note:**
+      HIGH - The issue must be addressed as a priority.
 
-If Self Managed permissions is selected then all target accounts should have 'AWSCloudFormationStackSetExecutionRole' role with trust relationship to Role 'AWSCloudFormationStackSetAdministrationRole'.
-```
+      CRITICAL - The issue must be remediated immediately to avoid it escalating.
 
-6. Select one of the deployment options
+    - If you provide Normalized and do not provide Label, then Label is set automatically as follows.
 
-    - Account Numbers - Specify the account numbers of the Target Accounts
+      0 - INFORMATIONAL
 
-    - Organization unit - Specify the OU ID
+      1–39 - LOW
 
-7. Specify the region(s)
+      40–69 - MEDIUM
 
-8. Determine deployment strategy (like multiple regions, multiple accounts etc)
+      70–89 - HIGH
 
-9. Review the deployment
+      90–100 - CRITICAL
+      
+    - Normalized
+      
+      Deprecated. The normalized severity of a finding. This attribute is being deprecated. Instead of providing Normalized, provide Label.
+      
+  - To add a filter to the finding list
+    - Open the AWS Security Hub console at https://console.aws.amazon.com/securityhub/.
 
-10. Create StackSet
+      To display a finding list, do one of the following:
 
-## Deployment Notes
+       1.In the Security Hub navigation pane, choose Findings.
 
-1. The cloudformation template on target will create s3 bucket in the same region,put bucket policy, bucket life cycle policy to send logs into deep archive after specified days, export the cloudwatch logs to s3 bucket through lambda function and cloudwatch rule to trigger lambda everyday.
+       2.In the Security Hub navigation pane, choose Insights. Choose an insight. Then on the results list, choose an insight result.
 
-2. The log group filter will match log group by "retention period". 
+       3.In the Security Hub navigation pane, choose Integrations. Choose See findings for an integration.
 
-3. AWS CW Log exports doesn't effectively keep track of logs that are exported previously in a native way. 
+      *Choose the Add filters box.*
 
-4. To avoid exporting the same data twice, this function uses a timeframe of 24 hour period. This period is the 1 day in the past.
+       4.In the menu, under Filters, choose a filter.
 
-5. Lambda function will run to keep the log export everyday.
+       5.Choose the filter match type.
 
-6. The default time for awaiting task completion is 5 Minutes(300 Seconds). Customize in `global_vars`.
+      *For a string filter, you can choose from the following comparison options:*
 
-7. FROM AWS Docs,Export task: One active (running or pending) export task at a time, per account. This limit cannot be changed.
+       6.is – Find a value that exactly matches the filter value.
 
-   https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html
+       7.starts with – Find a value that starts with the filter value.
 
-8. Increase Lambde Timeout based on requirements.
+       8.is not – Find a value that does not match the filter value.
 
-9. Lambda IAM - Role: CloudWatch Access List/Read & S3 Bucket - HEAD, List, Put.
+       9.does not start with – Find a value that does not start with the filter value.
 
-10. You need to Trigger lambda manually first time, then it will trigger Automatically on daily basis.
+      10.For a numeric filter, you can choose whether to provide a single number (Simple) or a range of numbers (Range).
 
-11. At the End Email will be sent to the user email provided through parameter.
+      11.For a date or time filter, you can choose whether to provide a length of time from the current date time (Rolling window) or a date range (Fixed range).
 
-## Testing
+      *Adding multiple filters has the following interactions:*
+
+      13.is and starts with filters are joined by OR. A value matches if it contains any of the filter values. For example, if you specify Severity label is CRITICAL and                 Severity label is HIGH, the results include both critical and high severity findings.
+
+      14.is not and does not start with filters are joined by AND. A value matches only if it does not contain any of those filter values. For example, if you specify Severity           label is not LOW and Severity label is not MEDIUM, the results do not include either low or medium severity findings.
+
+      15.If you have an is filter on a field, you cannot have a is not or a does not start with filter on the same field.
+
+      16.Specify the filter value.
+
+      *Note that for string filters, the filter value is case sensitive.*
+
+      For example, for findings from Security Hub, Product name is Security Hub. If you use the EQUALS operator to see findings from Security Hub, you must enter Security Hub as       the filter value. If you enter security hub, no findings are displayed.
+
+       17.Similarly, if you use the PREFIX operator, and enter Sec, Security Hub findings are displayed. If you enter sec, no Security Hub findings are displayed.
+
+       18.Choose Apply.
+       
+    - Grouping findings
+      - you can group the findings based on the values of a selected attribute.
+      - For example, if you group the findings by AWS account ID, you see a list of account identifiers, with the number of matching findings for each account.
+      
+      *To group the findings in a findings list*
+      
+       1.On the finding list, choose the Add filters box.
+       
+       2.In the menu, under Grouping, choose Group by.
+       
+       3.In the list, choose the attribute to use for the grouping.
+       
+       4.Choose Apply.
+ 
+
+## Amazon Inspector service limitations
+
+Currently, your assessment targets can consist only of EC2 instances.
+
+
+
+The following are Amazon Inspector limits per AWS account per region:
+
+| Resource                         | Default Limit | Comments                                                     |
+| :------------------------------- | :------------ | :----------------------------------------------------------- |
+| Instances in running assessments | 500           | The maximum number of EC2 instances that can be included across all running assessments per account per region. |
+| Assessment runs                  | 50000         | The maximum number of assessment runs that you can create per account per region. You can have multiple assessment runs happening at the same time as long as the assessment targets used for these runs do not contain overlapping EC2 instances. |
+| Assessment Templates             | 500           | The maximum number of assessment templates that you can have at any given time per account per region. |
+| Assessment Targets               | 50            | The maximum number of assessment targets that you can have at any given time per account per region. |

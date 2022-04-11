@@ -82,7 +82,7 @@ A rules package corresponds to a security goal that you might have. You can spec
 ## **Deployment steps**
 
 
-   - ***s3 bucket:***   s3 bucket in master account where this package will be deployed  - e.g. lambda-bucket.
+   - ***s3 bucket:***   s3 bucket in master account where this package will be deployed  - e.g. inspector-lambda-code.
    
    - ***Bucket policy:***   This template will create bucket policy for the created bucket to grant access for multiaccount to Lambda code and deploy it through Stack set.
    
@@ -102,7 +102,7 @@ The aws cloudformation package does follow actions:
 
 **Run the package command:**
 
-Navigate into the path "Cloudwatch_logs_export_to_s3\CloudformationTemplate" and use cloudformation packaged command given below:
+Navigate into the path "AWS-Inspector" and use cloudformation packaged command given below:
 
 ```
 aws cloudformation package --template-file </path_to_template/template.yml> --s3-bucket bucket-name --output-template-file <packaged-template.yml>
@@ -111,9 +111,16 @@ aws cloudformation package --template-file </path_to_template/template.yml> --s3
 e.g.
 
 ```
-CloudformationTemplate>aws cloudformation package --template-file cloudwtch_logs_exporting_s3_bucket.yml --s3-bucket lambda-bucket --output-template-file cloudwtch_logs_exporting_s3_bucket_packaged.yml
+aws cloudformation package --template-file inspector_deployment.yml --s3-bucket inspector-lambda-code --output-template-file inspector_deployment_packaged.yml
 ```
-1. Deploy **inspetor_deployment.yml** through stack set in desire account. It will create  resources i.e   resource group, assessment target, configure the assessment template and run that assessment template.
+
+#### Deploying the “packaged” template
+
+1. To deploy StackSet, select the inspector_deployment_packaged.yml in master account to deploy StackSets in the Target Accounts. It will create  resources i.e   resource group, assessment target, configure the assessment template and run that assessment template.
+
+2. Give meaningful name to StackSet
+
+3. Specify stack parameters as you would a single CloudFormation template. These parameters will be applied in each Target Account.
 
    **Parameters in Template**
 
@@ -125,12 +132,6 @@ CloudformationTemplate>aws cloudformation package --template-file cloudwtch_logs
    | pResourceGroupTagsValue | The key name of the tag of the resource       | Dev                    |
    | pDurationInSeconds      | The duration of the assessment run in seconds | 180                    |
 
-
-
-   ####  AWS cli packaged command:
-   ```
-   aws cloudformation package --template-file inspector_deployment.yml --s3-bucket patch-lambda-code --output-template-file inspector_deployment_packaged.yml
-   ```
 ## Amazon Security Hub
 
 **AWS Security Hub Multiaccount Scripts**

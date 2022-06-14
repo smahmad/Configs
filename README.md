@@ -23,10 +23,16 @@ Follow the following steps to integrate AWS Single Sign-on with Azure Active Dir
 8) Go back to AWS SSO service console, click on Choose file to upload Idp SAML metadata file that we downloaded in Step 7. Click on Next.
 
 9) On Confirm change step, Make sure that the conditions of chnaging the Identity source are read. Then type ACCEPT and click on Change Identity Source. with this step Setting up Azuru AD as identity source is completed.
+
  > And you see the following information is filled for identity source
+
  > Identity source: External identity provider
+
  > Authentication method: SAML 2.0
+
  > User portal URL: https://nbme-dev.awsapps.com/start 
+
+
 ## Amazon Inspector
 
 Amazon Inspector tests the network accessibility of your Amazon EC2 instances and the security state of your applications that run on those instances. Amazon Inspector assesses applications for exposure, vulnerabilities, and deviations from best practices. After performing an assessment, Amazon Inspector produces a detailed list of security findings that is organized by level of severity.

@@ -1,4 +1,4 @@
-# Deploy & Configure AWS Inspector to Scan Instances
+# AWS Single Sign-on to Integrate with Azure Active Directory
 
 The designed solution involves setting up the AWS Inspector  automation solution in each AWS account through AWS CloudFormation StackSets in a Master account.
 

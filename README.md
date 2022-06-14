@@ -24,13 +24,13 @@ Follow the following steps to integrate AWS Single Sign-on with Azure Active Dir
 
 9) On Confirm change step, Make sure that the conditions of chnaging the Identity source are read. Then type ACCEPT and click on Change Identity Source. with this step Setting up Azuru AD as identity source is completed.
 
- > And you see the following information is filled for identity source
+  And you see the following information is filled for identity source
 
- > Identity source: External identity provider
+  - Identity source: External identity provider
 
- > Authentication method: SAML 2.0
+  - Authentication method: SAML 2.0
 
- > User portal URL: https://nbme-dev.awsapps.com/start 
+  - User portal URL: https://nbme-dev.awsapps.com/start 
 
 
 ## Amazon Inspector

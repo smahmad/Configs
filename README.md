@@ -2,9 +2,11 @@
 
 AWS Single Sign-On (AWS SSO) is where you create, or connect, your workforce identities in AWS once and manage access centrally across your AWS organization. We can create user identities directly in AWS SSO, or you can bring them from your Microsoft Active Directory or a standards-based identity provider, such as Okta Universal Directory or Azure AD. 
 
-Follow the following steps to integrate AWS Single Sign-on with Azure Active Directory (Azure AD).
+Following are the instructions to integrate AWS Single Sign-on with Azure Active Directory (Azure AD).
 
 ## **Setting up Azuru AD as identity source**
+
+Following are the steps to configure up the Azure active directory as Identity source in AWS Single Sign-on.
 
 1) Go to AWS SSO console, select settings. choose Change Identity Source actions form Actions list for under Identity Source section 
 
@@ -22,15 +24,27 @@ Follow the following steps to integrate AWS Single Sign-on with Azure Active Dir
 
 8) Go back to AWS SSO service console, click on Choose file to upload Idp SAML metadata file that we downloaded in Step 7. Click on Next.
 
-9) On Confirm change step, Make sure that the conditions of chnaging the Identity source are read. Then type ACCEPT and click on Change Identity Source. with this step Setting up Azuru AD as identity source is completed.
-  And you see the following information is filled for identity source
+9) On Confirm change step, Make sure that the conditions of chnaging the Identity source are read. Then type ACCEPT and click on Change Identity Source. with this step  configuration of Azuru AD as identity source is completed and you see the following information is filled for identity source:
 
   - Identity source: External identity provider
 
   - Authentication method: SAML 2.0
 
-  - User portal URL: https://nbme-dev.awsapps.com/start 
+  - User portal URL: https://nbme-dev.awsapps.com/start
+  
+  - Provisioning: Manual
 
+
+## **Enable Automatic Provisioning**
+
+In most circumstances we would like to do provisioning automatically, so where we make a chnage to a user and group in Azure AD. We would want to automatically propagate through AWS SSO. Following are the steps to enable Automatic provisioning from Manual.
+
+
+1) On Change Identity Source section, by clicking on Enable in fornt of Enable Automatic Provisioning, we will have SCIM endpoint and Access token. Copy the values of SCIM endpoint and Access token to use them in the Azure AD console'
+
+  - **NOTE:** Acess token will be shown once, but it can be gnerated agin, so make sure to take note of this.
+
+2) 
 
 ## Amazon Inspector
 

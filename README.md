@@ -6,15 +6,15 @@ Follow the following steps to integrate AWS Single Sign-on with Azure Active Dir
 
 ## **Setting up Azuru AD as identity source**
 
-1) Go to AWS SSO console, select settings. choose Change Identity Source actions form Actions list for under Identity Source section 
+a) Go to AWS SSO console, select settings. choose Change Identity Source actions form Actions list for under Identity Source section 
 
-2) Select External identity provider option for Choose identity source Step for the source for users and groups that we want to change fro Azure AD.
+b) Select External identity provider option for Choose identity source Step for the source for users and groups that we want to change fro Azure AD.
 
-3) For Configure external identity provider, we have two important section
+c) For Configure external identity provider, we have two important section
 
- a) Service provider metadata 
+ 1) Service provider metadata 
  
- b) Identity provider metadata
+ 2) Identity provider metadata
 
 3) Click on 
 - AWS Security Hub

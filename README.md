@@ -14,7 +14,7 @@ Following are the steps to configure up the Azure active directory as Identity s
 
 3) For Configure external identity provider, we have two important sections, Service provider metadata and Identity provider metadata. First click on Download metadata file button to download to AWS SSO SAML metadata that we will be used to create the federation between the AWS SSO service and Azure AD enterprise application for AWS SSO.
 
-4) Frome here goto Azure Active directory and Create and Add new Enterprise Application of type Non-gallery application. Give a name to your application, NBME AWS SSO for example.
+4) From here goto Azure Active directory and Create and Add new Enterprise Application of type Non-gallery application. Give a name to your application, NBME AWS SSO for example.
 
 5) Select Single sign-on for your created application and choose SAML method.
 
@@ -40,11 +40,13 @@ Following are the steps to configure up the Azure active directory as Identity s
 In most circumstances we would like to do provisioning automatically, so where we make a chnage to a user and group in Azure AD. We would want to automatically propagate through AWS SSO. Following are the steps to enable Automatic provisioning from Manual.
 
 
-1) On Change Identity Source section, by clicking on Enable in fornt of Enable Automatic Provisioning, we will have SCIM endpoint and Access token. Copy the values of SCIM endpoint and Access token to use them in the Azure AD console'
+1) On Change Identity Source section, by clicking on Enable in fornt of Enable Automatic Provisioning, we will have SCIM endpoint and Access token to copy and to use their values in the Azure AD console'
 
   - **NOTE:** Acess token will be shown once, but it can be gnerated agin, so make sure to take note of this.
 
-2) 
+2) Goto Azure Active directory. Select Provisioning for your created application and set Provisioing Mode from Manual to Automatic. Here we have to provide the value of SCIM endpoint to Tenant URL and Access token to Service Token and click on Save to configure provisioning to automatic.
+
+3) Clcik on test connection to confirm and verifiy the endpoint access and credentials are are authorized to enable provision
 
 ## Amazon Inspector
 

@@ -1,10 +1,12 @@
 # AWS Single Sign-on to Integrate with Azure Active Directory
 
-The designed solution involves setting up the AWS Inspector  automation solution in each AWS account through AWS CloudFormation StackSets in a Master account.
+AWS Single Sign-On (AWS SSO) is where you create, or connect, your workforce identities in AWS once and manage access centrally across your AWS organization. We can create user identities directly in AWS SSO, or you can bring them from your Microsoft Active Directory or a standards-based identity provider, such as Okta Universal Directory or Azure AD. 
 
-## **AWS Services Used In Solution**
+Follow the following steps to integrate AWS Single Sign-on with Azure Active Directory (Azure AD).
 
-- AWS  Inspector
+## **Setting up Azuru AD as identity source**
+
+1) Go to AWS SSO console, slect settings. choose Change Identity Source actions form Actions list for under Identity Source Tab 
 
 - AWS Security Hub
 

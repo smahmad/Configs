@@ -6,19 +6,19 @@ Follow the following steps to integrate AWS Single Sign-on with Azure Active Dir
 
 ## **Setting up Azuru AD as identity source**
 
-a) Go to AWS SSO console, select settings. choose Change Identity Source actions form Actions list for under Identity Source section 
+1) Go to AWS SSO console, select settings. choose Change Identity Source actions form Actions list for under Identity Source section 
 
-b) Select External identity provider option for Choose identity source Step for the source for users and groups that we want to change fro Azure AD.
+2) Select External identity provider option for Choose identity source Step for the source for users and groups that we want to change fro Azure AD.
 
-c) For Configure external identity provider, we have two important section
+3) For Configure external identity provider, we have two important sections, Service provider metadata and Identity provider metadata. First click on Download metadata file button to download to AWS SSO SAML metadata that we will be used to create the federation between the AWS SSO service and Azure AD enterprise application for AWS SSO.
 
- 1) Service provider metadata 
- 
- 2) Identity provider metadata
+4) Frome here goto Azure Active directory and Create and Add new Enterprise Application of type Non-gallery application. Give a name to your application, NBME AWS SSO for example.
 
-3) Click on 
-- AWS Security Hub
+5) Select Single sign-on for your created application and choose SAML method.
 
+6) Once you slect SAML as Single Sign-On method you will see a configuration page. Here we will upload the fedration metadata by clicking on Upload metadata file button. select the metadta file that we downloaded in step 3 to upload and Add. On adding file, the needed basic SAML configuration information will be filled, Entity Id and Assertion Consumer service URL. Save this SAML configuration.
+
+7)  On configuration Page, on stage 3-SAML Signing certificate, click on Download for Federation Metadata XML
  
 ## Amazon Inspector
 

@@ -46,7 +46,14 @@ In most circumstances we would like to do provisioning automatically, so where w
 
 2) Goto Azure Active directory. Select Provisioning for your created application and set Provisioing Mode from Manual to Automatic. Here we have to provide the value of SCIM endpoint to Tenant URL and Access token to Service Token and click on Save to configure provisioning to automatic.
 
-3) Clcik on test connection to confirm and verifiy the endpoint access and credentials are are authorized to enable provision
+3) Click on test connection to confirm and verifiy the endpoint access and credentials are are authorized to enable provision. after successfull connection test click on Save to update user provisioning settings.
+
+4) Select Users and Groups for for our application to add users and groups and do assignment also.
+
+- **NOTE:** Dependig on your application and use case you may wnat to change the user attribute mappings on provisioning page.
+
+5) Go back to provisioning and click on Start provision which will start the cycle. if there is any issue in this provisiong, we can check provisioning details and technical information and also we can check out provisoning logs here. Provisioning will take little time to complete.
+
 
 ## Amazon Inspector
 

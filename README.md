@@ -8,7 +8,7 @@ Follow the following steps to integrate AWS Single Sign-on with Azure Active Dir
 
 1) Go to AWS SSO console, select settings. choose Change Identity Source actions form Actions list for under Identity Source section 
 
-2) Select External identity provider option for Choose identity source Step for the source for users and groups that we want to change fro Azure AD.
+2) Select External identity provider option for Choose identity source Step for the source for users and groups that we want to change fro Azure AD. Click on Next
 
 3) For Configure external identity provider, we have two important sections, Service provider metadata and Identity provider metadata. First click on Download metadata file button to download to AWS SSO SAML metadata that we will be used to create the federation between the AWS SSO service and Azure AD enterprise application for AWS SSO.
 
@@ -18,8 +18,15 @@ Follow the following steps to integrate AWS Single Sign-on with Azure Active Dir
 
 6) Once you slect SAML as Single Sign-On method you will see a configuration page. Here we will upload the fedration metadata by clicking on Upload metadata file button. select the metadta file that we downloaded in step 3 to upload and Add. On adding file, the needed basic SAML configuration information will be filled, Entity Id and Assertion Consumer service URL. Save this SAML configuration.
 
-7)  On configuration Page, on stage 3-SAML Signing certificate, click on Download for Federation Metadata XML
- 
+7) On configuration Page, on stage 3-SAML Signing certificate, click on Download for Federation Metadata XML file.
+
+8) Go back to AWS SSO service console, click on Choose file to upload Idp SAML metadata file that we downloaded in Step 7. Click on Next.
+
+9) On Confirm change step, Make sure that the conditions of chnaging the Identity source are read. Then type ACCEPT and click on Change Identity Source. with this step Setting up Azuru AD as identity source is completed.
+ > And you see the following information is filled for identity source
+ > Identity source: External identity provider
+ > Authentication method: SAML 2.0
+ > User portal URL: https://nbme-dev.awsapps.com/start 
 ## Amazon Inspector
 
 Amazon Inspector tests the network accessibility of your Amazon EC2 instances and the security state of your applications that run on those instances. Amazon Inspector assesses applications for exposure, vulnerabilities, and deviations from best practices. After performing an assessment, Amazon Inspector produces a detailed list of security findings that is organized by level of severity.

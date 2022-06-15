@@ -60,5 +60,6 @@ In most circumstances we would like to do provisioning automatically, so where w
 
 2) Go to AWS Accounts and select any account and click on Assigne Users, The users and groups should be available where we can assign to account, assigne existing permission sets to users and groups or create new permission sets here to assign
 
-
 - **NOTE:** we can assign grouops to accounts which is abiuosly the best proactice over assigning individual users.
+
+3) Open up the User portal URL, it will got to login.microsoft.com which is our external identity provider that is configured in AWS SSO. Use username and the password of the user assigned to enterprise application, it will go to AWS SSO sign in page, where you can see the accounts which are assigned to the user with pwermissions.

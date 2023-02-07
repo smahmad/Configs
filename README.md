@@ -17,7 +17,7 @@ c. SES must be activated in production instead of sandbox
 
 2- Select default event bus
 	
-3- In permissions 
+3- In permissions, Add the following statement with other statement in the policy, if not already part of the policy.
 	
 ```
 {
@@ -36,7 +36,7 @@ c. SES must be activated in production instead of sandbox
   }]
 }
 ```
-* Note: replace region, valid account id and principleOrgID in above policy 
+**Note: replace region, valid account id and principleOrgID in above policy** 
 
 ## b. Add tags in user accounts ##
 

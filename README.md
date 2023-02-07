@@ -48,16 +48,14 @@ c. SES must be activated in production instead of sandbox
 
 4- In Tags Click "Manage tags".
 
-5- Add following tags:
+5- Add and save the following tags:
 
    | Key           |Value                                        |Description                                        |
 | ------------------- | ---------------------------------- |---------------------------------- |
 | BillingContact | < nshafiq@enquizit.com >                        | Email address to notify and alert|
-| AccountExclusion | True/False                        |
+| AccountExclusion | True/False                        | If True, the account will be excluded for budget |
 | BudgetedAmount | 100                        | Account's budgeted amount, will effect if value of AccountExclusion is False |
 | AlertThresholds | 80:100                        |define number of alert with threshholds delimitted by : |
-
-7- Click "Save changes".
 
 
 ## Package Contents ##

@@ -54,6 +54,8 @@ c. SES must be activated in production instead of sandbox
 | ------------------- | ---------------------------------- |
 | BillingContact | < nshafiq@enquizit.com >                        |
 | AccountExclusion | True/False                        |
+| BudgetedAmount | 100                        |
+| AlertThresholds | 80:100                        |
 
 7- Click "Save changes".
 

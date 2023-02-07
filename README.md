@@ -53,7 +53,6 @@ c. SES must be activated in production instead of sandbox
    | Key           |Value                                        |
 | ------------------- | ---------------------------------- |
 | BillingContact | < nshafiq@enquizit.com >                        |
-| ------------------- | ---------------------------------- |
 | AccountExclusion | True/False                        |
 
 7- Click "Save changes".

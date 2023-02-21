@@ -1,208 +1,42 @@
-Using AWS Budget's alerts in the member accounts to move the AWS account to an OU with restrictive SCP 
+# AWS Orgnization Unit Service Control policy implementation
+2020-04-07
+Enquizit.inc
 
-2022-04-05   
-  
+## Summary
+This package allows for deploying, managing and attaching your Service Control Policies from a single location. Simply update the CloudFormation template (CFT) to add/remove/update SCPs. Note: Each SCP added after the first SCP in the CFT after the 1st must have the DependsOn attribute with the name of the SCP preceeding it (this prevents errors due to overlapping API calls).
 
-## Prerequisites ##
+## Package Contents
 
-a. Add resource based policy
+1. cft/eq-organization-scp.yml
+2. Configuration/buidspec-validate-cft.yml
+3. deployment-targets.txt
+4. parameters-stackset.txt
 
-b. Add Tags in the account
+NOTE: If the user want to deploy the this scp template as a self managed stackset then there is no need for the deployment-targets.txt and if the user want to deploy it as service managed then deployment-targets.txt must contain target ID (it can be root or OU ID). 
 
-c. SES must be activated in production instead of sandbox
 
-## a. Add resource based policy ##
 
-1- Navigate into eventbridge from aws console.
+## Deployment steps without pipeline 
+1. Navigate to CloudFormation  
+    a. Click "Create Stack" -> "With new resource (standard)"  
+    b. Under Prerequisite select "Template is ready"  
+    c. Under Specify Template select "Upload a template file" and choose `eq-organization-scp.yml`
 
-2- Select default event bus
-	
-3- In permissions, Add the following statement with other statement in the policy, if not already part of the policy.
-	
-```
-{
-  "Version": "2012-10-17",
-  "Statement": [{
-    "Sid": "mgmt-bus-stmt",
-    "Effect": "Allow",
-    "Principal": "*",
-    "Action": "events:PutEvents",
-    "Resource": "arn:aws:events:<region>:<valid account id>:event-bus/default",
-    "Condition": {
-      "StringEquals": {
-        "aws:PrincipalOrgID": <"o-srsgnvvcqo">
-      }
-    }
-  }]
-}
-```
-**Note: replace region, valid account id and principleOrgID in above policy** 
+2. Enter and Stack name and specify the following parameters:
+    | Parameter             | Description                           |  Values                |
+    |-----------------------|---------------------------------------|-------------------------------| 
+    | ResourcePrefix | Prefix for resources created. | Comma Delimited List Of OUs |
+    | DDRWSTVOUs | SCP to Disallow the deletion of resources with specific tag values | Comma Delimited List Of OUs |
+    | RTNaOUs | SCP to "Disallow Creation Of Resources Outside Of North America | Comma Delimited List Of OUs |
+    | DCUOUs | SCP to "Disallow Create New User Action. | Comma Delimited List Of OUs |
+    | DSSOUs | SCP to "Disallow The Use Of Specified Services | Comma Delimited List Of OUs |
+    | DCNROUs | SCP to "Disallow The Creation Of Network Resources | Comma Delimited List Of OUs |
+    | EEVEOUs | SCP to "Enforce The Encryption Of EBS Volume | Comma Delimited List Of OUs |
 
-## b. Add tags in user accounts ##
+3. Run the cloudformation template and it will create all the manadatory polices  
+4. To update the policy, update the cloudformation template file `eq-organization-scp.yml` and execute changeset to update existing policies
 
-1- Navigate into AWS Organizations from aws console.
 
-2- Select AWS accounts.
+**NOTE:** The naming convention for the parameter takes the first letter of every word used in the description of the SCP and (OUs) is appended the end (i.e) (Disallow the deletion of resources with specific tag values) (DDRWSTVOUs)
 
-3- Click "organization unit" then Select "user account".
-
-4- In Tags Click "Manage tags".
-
-5- Add and save the following tags:
-
-   | Key           |Value                                        |Description                                        |
-| ------------------- | ---------------------------------- |---------------------------------- |
-| BillingContact | < nshafiq@enquizit.com >                        | Email address to notify and alert|
-| AccountExclusion | True/False                        | If True, the account will be excluded for budget |
-| BudgetedAmount | 100                        | Account's budgeted amount, will effect if value of AccountExclusion is False |
-| AlertThresholds | 80:100                        |define number of alert with threshholds delimitted by : |
-
-
-## Package Contents ##
- 
-a. Cross-account-role.yml
-
-b. bucket_with_policy.yml 
-
-c. budget_control.yml 
-
-d. budget_control_member_acct.yml
-
-e. Readme.md   
-
-
-## a. Cross-account-role.yml ##
-
-Deploy the following stack in Management account, this will create an cross account in management account that will be used by the lambda funtion in member accounts when call aws organization API  .
-
-1. Select "Create stack" and choose the option "With new resources (standard)".
-
-2. Choose "Template is Ready" and "Upload Template".
-
-3. Click "Choose file" and upload the file "bucket_with_policy.yml". Click "Next".
-
-4. Click "Next" and specify the following parmeters.
-
-   | Parameter           | Description                        | Default Values                                        |
-   | ------------------- | ---------------------------------- | ----------------------------------------------------- |
-   | pAssumeRoleName | Bucket name                        | -                                                     |
-   | pExternalAccountArnList| ARNs for the root account to deply | arn:aws:iam::<Acctid>:root,arn:aws:iam::<Acctid>:root |
-
-5. Click "Next".
-
-6. Click "Create Stack".
-
-Output: A Assume Role in management account is created for lambda function  
-
-
-
-## b. bucket_with_policy.yml ##
-
-
-Deploy the following stack in you master account, this will create an S3 bucket & bucket policy in the master account that will be used by the lambda in when run cli command is being used to make cloudformation package .
-
-1. Select "Create stack" and choose the option "With new resources (standard)".
-
-2. Choose "Template is Ready" and "Upload Template".
-
-3. Click "Choose file" and upload the file "bucket_with_policy.yml". Click "Next".
-
-4. Click "Next" and specify the following parmeters.
-
-   | Parameter           | Description                        | Default Values                                        |
-   | ------------------- | ---------------------------------- | ----------------------------------------------------- |
-   | BucketNameForLambda | Bucket name                        | -                                                     |
-   | ARNlist             | ARNs for the root account to deply | arn:aws:iam::<Acctid>:root,arn:aws:iam::<Acctid>:root |
-
-5. Click "Next".
-
-6. Click "Create Stack".
-
-Output: A S3 bucket in master account is created for lambda function  
-  
-
-## c. budget_control.yml ##
-  
-
-Go to the terminal i.e VSC(visual studio code)
-
-1- Open the terminal.
-
-2- Navigate into the cloudformation folder, where the yml file is present.
-
-3- Run the following cloudformation packaged command with Bucket name:
-
-```
-aws cloudformation package --template-file budget_control.yml  --s3-bucket <Bucket Name>  --output-template-file budget_control_packaged_template.yml
-```
-
-```<Bucket Name>``` Bucket name created in above step (b)
-
-Output: A budget_control_packaged_template.yml is being created in the same folder.
-
-The following stack will create an lambda function and event bridge rule.
-
-1. Select "Create stack" and choose the option "With new resources (standard)".
-
-2. Choose "Template is Ready" and "Upload Template".
-
-3. Click "Choose file" and upload the file "budget_control_packaged_template.yml". Click "Next".
-
-4. Click "Next" and specify the following parameters.
-
-   | Parameter              | Description                                  | Default Values                   |
-   | ---------------------- | -------------------------------------------- | -------------------------------- |
-   | pQuarantineOUName          | Name of the Quarantine OU         | Quarantine-OU  |
-   | pLambdaTiggerSchedular | Cron Job to schedule the lambda trigger time | cron(0 6 1 * ? *)                |
-   | pSenderEmail           | SES Verified Email Address                   | Verified Email Address           |
-   | pOrganizationRoot       | Root Organization Id                   | < r-n6tb >           |
-
-5. Click "Next".
-
-6. Click "Create Stack".
-
-Output: A Event bridge rule and lambda function is created  
-  
-	
-
-## d. budget_control_member_acct.yml ##
-
-
-Go to the terminal i.e VSC(visual studio code)
-
-1- Open the terminal.
-
-2- Navigate into the cloudformation folder, where the yml file is present.
-
-3- Run the following cloudformation packaged command with Bucket name:
-
-```
-aws cloudformation package --template-file budget_control_member_acct.yml  --s3-bucket <Bucket Name>  --output-template-file budget_control_member_acct_packaged_template.yml
-```
-
-```<Bucket Name>```     Bucket name created in above step (b)
-
-Output: A budget_control_member_acct_packaged_template.yml is being created in the same folder.
-
-1. Select "Create stack set" and choose the Permissions for your stackset. Select "Self-service permissions" if you want to deploy in individual accounts.
-
-2. Choose "Template is Ready" and "Upload Template".
-
-3. Click "Choose file" and upload the file "budget_control_member_acct_packaged_template.yml". Click "Next".
-
-4. Click "Next and specify the following parameters".
-
-   | Parameter                      | Description                                                  | Default Values   |
-   | ------------------------------ | ------------------------------------------------------------ | ---------------- |
-   | ManagementAccount              | Management AWS Account ID for configuring the event bus ARN in the member accounts | 123456789012     |
-   | pOrgAccountAdminEmail          | Email of the Organization Account Admin                      | -                |
-   | pOrgAccountMasterEmail         | Email of the Organization Account Admin                      | -                |
-   | pBudgetName                    | Budget Name                                                  | EQ-BUDGET        |
-   | pAssumeRoleArn                    | Assume Role Arn created in step .a Name                                                  | < arn:aws:iam::188106553370:roleOrganozation-access-assume-role >        |
-
-5. Click Next and Configure Stack set options such as Tags .
-
-6. Click Next and set deployment options. you can either select deploy stack in accounts or Deploy stacks in Organization units
-   Click  Next, review the details and then click "Submit".
-
-Output: A Budget in child accounts, lambda, sns topic will be created
+7. To delete the policy, delete the cloudformation template and it will delete all the polices
